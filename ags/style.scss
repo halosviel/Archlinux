@@ -1,0 +1,102 @@
+// https://gitlab.gnome.org/GNOME/gtk/-/blob/gtk-3-24/gtk/theme/Adwaita/_colors-public.scss
+$fg-color: #{"@theme_fg_color"};
+$bg-color: #{"@theme_bg_color"};
+
+window.Bar {
+  background: transparent;
+  color: $fg-color;
+  font-weight: bold;
+
+  > centerbox {
+    //background: $bg-color;
+    background-color: rgba(25, 22, 26, 0);
+    border-radius: 10px;
+    margin-top: 8px;
+  }
+
+  /* Left */ 
+
+  .cava {
+    min-height: 10px;
+    padding: 2px 4px;
+  }
+
+  .cava-bar {
+    min-width: 10px;
+    background-color: rgb(255, 122, 122);
+    border-radius: 2px;
+  }
+
+  .ws-btn {
+    background: transparent;
+    border: none;
+    border-radius: 6px;
+    padding: 2px 6px;
+    min-width: 20px;
+    color: rgba(255, 194, 161, 0.4);
+  }
+
+  .ws-btn.occupied {
+    color: rgba(255, 194, 161, 0.8);
+  }
+
+  .ws-btn.active {
+    color: rgba(242, 242, 242, 0.8);
+  }
+
+
+
+  /* Center */
+
+  .time {
+    color: rgb(255, 231, 171);
+  }
+
+  .date {
+    color: rgb(255, 231, 171);
+  }
+
+  /* Right */
+
+  .volume {
+    color: rgb(255, 161, 183);
+  }
+
+  .weather {
+    color: rgb(213, 171, 255);
+  }
+
+  .temperature {
+    color: rgb(161, 216, 255);
+  }
+
+  .network {
+    color: rgb(161, 255, 202);
+  }
+}
+
+/* General */
+
+.box {
+  background-color: rgba(13, 13, 13, 0.75);
+  padding: 5px 15px 5px 15px;
+}
+
+.rounded {
+  border-radius: 8px;
+}
+
+/* Boxes */
+
+.left-box {
+  margin-left: 20px;
+}
+
+.center-box {
+  padding-left: 15px;
+  padding-right: 15px;
+}
+
+.right-box {
+  margin-right: 20px;
+}
