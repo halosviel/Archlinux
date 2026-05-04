@@ -1,0 +1,7 @@
+[general]
+bars = 0
+framerate = 50
+
+[color]
+gradient = 0
+foreground = '#ff8cd3'
