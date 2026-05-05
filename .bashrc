@@ -11,7 +11,7 @@ PS1='[\u@\h \W]\$ '
 
 # aliases
 alias matrix="unimatrix -s 93"
-alias clock="tty-clock -tcC 3"
+alias clock="tty-clock -tcC 7"
 alias ff="fastfetch"
 
 # vsc os keychain fix
