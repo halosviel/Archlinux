@@ -10,7 +10,7 @@ alias grep='grep --color=auto'
 PS1='[\u@\h \W]\$ '
 
 # aliases
-alias matrix="unimatrix -s 93"
+alias matrix="unimatrix -c blue -s 93"
 alias clock="tty-clock -tcC 7"
 alias ff="fastfetch"
 

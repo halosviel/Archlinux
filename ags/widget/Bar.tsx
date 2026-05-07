@@ -43,13 +43,16 @@ const VOLUME_ICONS = {
   40: "󰖀",
   100: "󰕾",
 }
+const WEATHER_UPDATE_INTERVAL = 60000
+const CPU_TEMP_UPDATE_INTERVAL = 100
+const NETWORK_SPEED_UPDATE_INTERVAL = 100
 
 // ----------------------
 // LEFT
 // ----------------------
 
 
-function W_SoundBars() {
+function SoundBars() {
   const cava = Cava.get_default()
   cava.bars = CAVA_BAR_COUNT
   cava.framerate = CAVA_FRAMERATE
@@ -83,7 +86,7 @@ function W_SoundBars() {
   return box
 }
 
-function W_Workspaces() {
+function Workspaces() {
   if (WORKSPACE_CHARS.length !== WORKSPACE_COUNT) {
     throw new Error(
       `\n\nW_Workspaces(): WORKSPACE_CHARS did not match WORKSPACE_COUNT (${WORKSPACE_COUNT} expected, got ${WORKSPACE_CHARS.length})\n\n`
@@ -134,7 +137,7 @@ function W_Workspaces() {
 // CENTER
 // ----------------------
 
-function W_Time() {
+function Time() {
   return (
     <label
       label={createPoll("", 1000, TIME_FORMAT)}
@@ -143,7 +146,7 @@ function W_Time() {
   )
 }
 
-function W_Gif() {
+function Gif() {
   let animation: GdkPixbuf.PixbufAnimation | null = null
   let iter: GdkPixbuf.PixbufAnimationIter | null = null
 
@@ -176,7 +179,7 @@ function W_Gif() {
   return image
 }
 
-function W_Date() {
+function Date() {
    return (
     <label
       label={createPoll("", 1000, DATE_FORMAT)}
@@ -191,13 +194,11 @@ function W_Date() {
 // RIGHT
 // ----------------------
 
-function W_Volume() {
+function Volume() {
   const audio = Wp.get_default()
-  const speaker = audio.default_speaker
 
   const getVolumeIcon = (vol: number) => {
     const percent = Math.round(vol * 100)
-
     const thresholds = Object.keys(VOLUME_ICONS)
       .map(Number)
       .sort((a, b) => a - b)
@@ -212,30 +213,45 @@ function W_Volume() {
   const label = new Gtk.Label()
   label.cssClasses = ["volume"]
 
-  const update = () => {
-    const vol = speaker.volume
-    label.label = `${getVolumeIcon(vol)} ${Math.round(vol * 100)}%`
+  let speakerConnection: number | null = null
+
+  const bindSpeaker = () => {
+    const speaker = audio.default_speaker
+    if (!speaker) return
+
+    if (speakerConnection !== null) {
+      audio.default_speaker?.disconnect(speakerConnection)
+      speakerConnection = null
+    }
+
+    const update = () => {
+      label.label = `${getVolumeIcon(speaker.volume)} ${Math.round(speaker.volume * 100)}%`
+    }
+
+    update()
+
+    speakerConnection = speaker.connect("notify::volume", update)
+    speaker.connect("notify::mute", update)
   }
 
-  update()
-  speaker.connect("notify::volume", update)
-  speaker.connect("notify::mute", update)
+  audio.connect("notify::default-speaker", bindSpeaker)
+  bindSpeaker()
 
   return label
 }
 
-function W_Weather() {
-  const weather = createPoll("", 60000, `curl -s "wttr.in/London?format=j1"`)
+function Weather() {
+ const weather = createPoll("", 300000, `curl -s "https://api.open-meteo.com/v1/forecast?latitude=51.5074&longitude=-0.1278&current=apparent_temperature,weather_code&timezone=Europe/London"`)
 
   const getIcon = (code: number) => {
-    if (code === 113) return "󰖙" // sunny
-    if (code === 116) return "󰖕" // partly cloudy
-    if (code === 119 || code === 122) return "󰖐" // cloudy
-    if (code === 143 || code === 248 || code === 260) return "󰖑" // fog
-    if ([176, 293, 296, 299, 302, 305, 308].includes(code)) return "󰖗" // rain
-    if ([179, 323, 326, 329, 332, 335, 338].includes(code)) return "󰖘" // snow
-    if ([200, 386, 389, 392, 395].includes(code)) return "󰖓" // thunder
-    return "󰖐" // default cloudy
+    if (code === 0) return "󰖙"                                          // clear sky
+    if (code === 1 || code === 2) return "󰖕"                            // partly cloudy
+    if (code === 3) return "󰖐"                                          // overcast
+    if (code === 45 || code === 48) return "󰖑"                          // fog
+    if ([51, 53, 55, 61, 63, 65, 80, 81, 82].includes(code)) return "󰖗" // rain/drizzle
+    if ([71, 73, 75, 77, 85, 86].includes(code)) return "󰖘"             // snow
+    if ([95, 96, 99].includes(code)) return "󰖓"                         // thunder
+    return "󰖐"
   }
 
   return (
@@ -246,12 +262,12 @@ function W_Weather() {
 
         try {
           const data = JSON.parse(out)
-          const current = data.current_condition?.[0]
+          const current = data.current
 
           if (!current) return "N/A"
 
-          const temp = current.temp_C
-          const code = Number(current.weatherCode)
+          const temp = Math.round(current.apparent_temperature)
+          const code = Number(current.weather_code)
 
           return `${getIcon(code)} ${temp}°C`
         } catch {
@@ -262,8 +278,8 @@ function W_Weather() {
   )
 }
 
-function W_Temperature() {
-  const temp = createPoll("", 100, "bash -c 'awk \"{printf \\\"%.1f\\\", \\$1/1000}\" $(grep -rl Tctl /sys/class/hwmon/hwmon*/temp*_label | sed s/temp.*_label/temp1_input/)'")
+function CpuTemperature() {
+  const temp = createPoll("", CPU_TEMP_UPDATE_INTERVAL, "bash -c 'awk \"{printf \\\"%.1f\\\", \\$1/1000}\" $(grep -rl Tctl /sys/class/hwmon/hwmon*/temp*_label | sed s/temp.*_label/temp1_input/)'")
   
   const getIcon = (t: string) => {
     const num = parseFloat(t)
@@ -283,7 +299,7 @@ function W_Temperature() {
   )
 }
 
-function W_Network() {
+function NetworkSpeed() {
   const label = new Gtk.Label()
   label.cssClasses = ["network"]
 
@@ -299,7 +315,7 @@ function W_Network() {
         prev = { rx, tx }
       })
       .catch(console.error)
-  }, 100)
+  }, NETWORK_SPEED_UPDATE_INTERVAL)
 
   return label
 }
@@ -326,21 +342,21 @@ export default function Bar(gdkmonitor: Gdk.Monitor) {
     >
       <centerbox cssName="centerbox">
         <box $type="start" spacing="20" class="box rounded left-box">
-          <W_SoundBars />
-          <W_Workspaces />
+          <SoundBars />
+          <Workspaces />
         </box>
 
         <box $type="center" spacing="20" class="box rounded center-box">
-          <W_Time />
-          <W_Gif />
-          <W_Date />
+          <Time />
+          <Gif />
+          <Date />
         </box>
 
         <box $type="end" spacing="20" class="box rounded right-box">
-          <W_Volume />
-          <W_Weather />
-          <W_Temperature />
-          <W_Network />
+          <Volume />
+          <Weather />
+          <CpuTemperature />
+          <NetworkSpeed />
         </box>
 
         </centerbox>
