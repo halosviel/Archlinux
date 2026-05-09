@@ -214,15 +214,18 @@ function Volume() {
   label.cssClasses = ["volume"]
 
   let speakerConnection: number | null = null
+  let prevSpeaker: any | null = null
 
   const bindSpeaker = () => {
     const speaker = audio.default_speaker
     if (!speaker) return
 
-    if (speakerConnection !== null) {
-      audio.default_speaker?.disconnect(speakerConnection)
+    if (speakerConnection !== null && prevSpeaker !== null) {
+      prevSpeaker.disconnect(speakerConnection)
       speakerConnection = null
     }
+
+    prevSpeaker = speaker
 
     const update = () => {
       label.label = `${getVolumeIcon(speaker.volume)} ${Math.round(speaker.volume * 100)}%`
