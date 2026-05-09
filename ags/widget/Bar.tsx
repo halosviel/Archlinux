@@ -244,16 +244,16 @@ function Volume() {
 }
 
 function Weather() {
- const weather = createPoll("", 300000, `curl -s "https://api.open-meteo.com/v1/forecast?latitude=51.5074&longitude=-0.1278&current=apparent_temperature,weather_code&timezone=Europe/London"`)
+  const weather = createPoll("", 300000, `curl -s "https://api.open-meteo.com/v1/forecast?latitude=51.5074&longitude=-0.1278&current=temperature_2m,weather_code&timezone=Europe/London&models=ecmwf_ifs025"`)
 
   const getIcon = (code: number) => {
-    if (code === 0) return "󰖙"                                          // clear sky
-    if (code === 1 || code === 2) return "󰖕"                            // partly cloudy
-    if (code === 3) return "󰖐"                                          // overcast
-    if (code === 45 || code === 48) return "󰖑"                          // fog
-    if ([51, 53, 55, 61, 63, 65, 80, 81, 82].includes(code)) return "󰖗" // rain/drizzle
-    if ([71, 73, 75, 77, 85, 86].includes(code)) return "󰖘"             // snow
-    if ([95, 96, 99].includes(code)) return "󰖓"                         // thunder
+    if (code === 0) return "󰖙"
+    if (code === 1 || code === 2) return "󰖕"
+    if (code === 3) return "󰖐"
+    if (code === 45 || code === 48) return "󰖑"
+    if ([51, 53, 55, 61, 63, 65, 80, 81, 82].includes(code)) return "󰖗"
+    if ([71, 73, 75, 77, 85, 86].includes(code)) return "󰖘"
+    if ([95, 96, 99].includes(code)) return "󰖓"
     return "󰖐"
   }
 
@@ -262,16 +262,12 @@ function Weather() {
       class="weather"
       label={weather.as(out => {
         if (!out) return "…"
-
         try {
           const data = JSON.parse(out)
           const current = data.current
-
           if (!current) return "N/A"
-
-          const temp = Math.round(current.apparent_temperature)
+          const temp = Math.round(current.temperature_2m)
           const code = Number(current.weather_code)
-
           return `${getIcon(code)} ${temp}°C`
         } catch {
           return "ERR"
